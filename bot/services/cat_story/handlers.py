@@ -1,35 +1,87 @@
-import requests
-import json
-import asyncio
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from pathlib import Path
+import random
+
+from aiogram import Router
+from aiogram.types import Message
+from aiogram.filters import Command
+
+from openai import OpenAI
+
+import config
+from cat_story.filters import ReplyBotFilter
+
+# from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+current_dir = Path(__file__).resolve().parent
+
+cat_story_router = Router()
+client = OpenAI(api_key=config.CHATGPT_KEY)
+
+rude_prompt_file = open(current_dir / "rude_prompt.txt", "r", encoding="utf-8")
+rude_prompt = rude_prompt_file.read()
+rude_prompt_file.close()
+kind_prompt_file = open(current_dir / "kind_prompt.txt", "r", encoding="utf-8")
+kind_prompt = kind_prompt_file.read()
+kind_prompt_file.close()
+compliments_file = open(current_dir / "compliments.txt", "r", encoding="utf-8")
+compliments = compliments_file.readlines()
+compliments_file.close()
+names_file = open(current_dir / "names.txt", "r", encoding="utf-8")
+kind_names = names_file.readlines()
+names_file.close()
 
 
-
-async def cat_story():
-    yandex_cloud_catalog = "b1ght86htrumpui6harn"
-    yandex_api_key = ""
-    temperature = 0.6
-    prompt = "за что у тебя отвечает параметр temperature? Напиши математическую формулу"
-    yandex_gpt_model = "yandexgpt-lite"
-    body = {
-        "modelUri": f"gpt://{yandex_cloud_catalog}/{yandex_gpt_model}",
-        "completionOptions": {
-            "stream": False,
-            "temperature": temperature,
-            "maxTokens": "2000",
-        },
-        "messages": [{"role": "user", "text": prompt}],
-    }
-
-    url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Api-Key {yandex_api_key}",
-    }
-
-    response = requests.post(url, headers=headers, json=body)
-    response_json = json.loads(response.text)
-    answer = response_json["result"]["alternatives"][0]["message"]["text"]
-    print(answer)
+@cat_story_router.message(Command("story"))
+async def cat_story(msg: Message):
+    text = msg.text.replace("/story", "")
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "developer", "content": rude_prompt},
+            {
+                "role": "user",
+                "content": text
+            }
+        ]
+    )
+    await msg.reply(completion.choices[0].message.content)
 
 
+@cat_story_router.message(ReplyBotFilter())
+async def cat_reply(msg: Message):
+    text = msg.text.replace("/story", "")
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "developer", "content": rude_prompt},
+            {
+                "role": "assistant",
+                "content": msg.reply_to_message.text
+            },
+            {
+                "role": "user",
+                "content": text
+            }
+        ]
+    )
+    await msg.reply(completion.choices[0].message.content)
+
+
+@cat_story_router.message(Command("kstory"))
+async def cat_kind(msg: Message):
+    text = msg.text.replace("/story", "")
+    str_compliments = "".join(random.choices(compliments, k=4))
+    str_names = "".join(random.choices(kind_names, k=4))
+
+    prompt = kind_prompt.format(compliments=str_compliments, names=str_names)
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "developer", "content": prompt},
+            {
+                "role": "user",
+                "content": text
+            }
+        ]
+    )
+    await msg.reply(completion.choices[0].message.content)

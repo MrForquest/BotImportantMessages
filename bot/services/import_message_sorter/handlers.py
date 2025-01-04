@@ -30,6 +30,16 @@ async def message_handler(msg: Message):
     )
 
 
+@important_message_sorter_router.message(Command("test"))
+async def handler_one(msg: Message):
+    await msg.answer("Это обработчик 1")
+
+
+@important_message_sorter_router.message(Command("test"))
+async def handler_two(msg: Message):
+    await msg.answer("Это обработчик 2")
+
+
 # TODO
 """
 Так, ребят, скоро, важно, нужно, вместе, соберемся, в понедельник, на следующей неделе, поедем, пойдем, гулять, погулять
