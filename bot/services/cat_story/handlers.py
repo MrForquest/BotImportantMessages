@@ -31,13 +31,26 @@ kind_names = names_file.readlines()
 names_file.close()
 
 
+def get_rude_prompt(msg):
+    return rude_prompt
+
+
+def get_kind_prompt(msg):
+    text = msg.text.replace("/kstory", "")
+    str_compliments = "".join(random.choices(compliments, k=4))
+    str_names = "".join(random.choices(kind_names, k=4))
+
+    prompt = kind_prompt.format(compliments=str_compliments, names=str_names)
+    return prompt
+
+
 @cat_story_router.message(Command("story"))
 async def cat_story(msg: Message):
     text = msg.text.replace("/story", "")
     completion = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "developer", "content": rude_prompt},
+            {"role": "developer", "content": get_rude_prompt()},
             {
                 "role": "user",
                 "content": text
@@ -53,7 +66,7 @@ async def cat_reply(msg: Message):
     completion = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "developer", "content": rude_prompt},
+            {"role": "developer", "content": get_kind_prompt(msg)},
             {
                 "role": "assistant",
                 "content": msg.reply_to_message.text
@@ -70,14 +83,11 @@ async def cat_reply(msg: Message):
 @cat_story_router.message(Command("kstory"))
 async def cat_kind(msg: Message):
     text = msg.text.replace("/story", "")
-    str_compliments = "".join(random.choices(compliments, k=4))
-    str_names = "".join(random.choices(kind_names, k=4))
 
-    prompt = kind_prompt.format(compliments=str_compliments, names=str_names)
     completion = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "developer", "content": prompt},
+            {"role": "developer", "content": get_kind_prompt(msg)},
             {
                 "role": "user",
                 "content": text
