@@ -16,21 +16,6 @@ from utils.command_registry import register_command
 MODEL_NAME = "gemini-2.5-flash"
 GPT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
-DEFAULT_PROMPTS = {
-    "rude_prompt": {
-        "filename": "rude_prompt.txt",
-        "desc": "Очень грубый промпт с матами и оскорблениями.",
-    },
-    "right_friend_prompt": {
-        "filename": "right_friend_prompt.txt",
-        "desc": "Промпт для друга с крайне правыми взглядами",
-    },
-    "friend_prompt": {
-        "filename": "friend_prompt.txt",
-        "desc": "Промпт для подруги, с которой интересно болтать",
-    },
-}
-
 current_dir = pathlib.Path(__file__).resolve().parent
 cat_story_router = Router()
 gpt_client = OpenAI(
@@ -39,17 +24,17 @@ gpt_client = OpenAI(
 )
 
 
-def get_prompt_by_name(prompt_name: str) -> Optional[str]:
-    prompt_obj = DEFAULT_PROMPTS.get(prompt_name, None)
-    if prompt_obj is None:
+def get_prompt_by_filename(filename: str) -> Optional[str]:
+    path = current_dir / os.path.join("prompts", filename)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            prompt_ = f.read()
+            return prompt_
+    except FileNotFoundError:
         return None
-    path = current_dir / os.path.join("prompts", prompt_obj["filename"])
-    with open(path, "r", encoding="utf-8") as f:
-        prompt_ = f.read()
-    return prompt_
 
 
-system_prompt = _p if (_p := get_prompt_by_name("friend_prompt")) else ""
+system_prompt = _p if (_p := get_prompt_by_filename("friend_prompt.txt")) else ""
 
 
 def serialize_chat_history(messages, chat_history):
@@ -109,31 +94,25 @@ async def clean_history(msg: Message, history: Dict[int, collections.deque]):
 async def set_system_prompt(msg: Message):
     global system_prompt
     system_prompt = msg.text.replace("/set_system_prompt", "")
-
     await msg.reply("Новый системный промпт установлен.")
 
 
-@cat_story_router.message(Command("set_named_prompt"), IsBotAdmin())
-async def set_system_prompt(msg: Message):
+@cat_story_router.message(Command("set_file_prompt"), IsBotAdmin())
+async def set_system_named_prompt(msg: Message):
     global system_prompt
-    prompt_name = msg.text.replace("/set_named_prompt", "").strip()
-    new_prompt = get_prompt_by_name(prompt_name)
+    filename = msg.text.replace("/set_file_prompt", "").strip()
+    new_prompt = get_prompt_by_filename(filename)
     if new_prompt is None:
-        await msg.reply(f'Промпт с именем "{prompt_name}" не найден.')
+        await msg.reply(f'Файл с именем "{filename}" не найден.')
     else:
         system_prompt = new_prompt
         await msg.reply("Новый системный промпт установлен.")
 
 
-@cat_story_router.message(Command("get_list_def_prompts"))
+@cat_story_router.message(Command("get_list_prompts"))
 async def get_list_prompts(msg: Message):
-    lines = []  # ["Доступные промпты:"]
-    for prompt_name, prompt_dict in sorted(DEFAULT_PROMPTS.items()):
-        content = formatting.Text(
-            formatting.Bold(prompt_name), " - ", prompt_dict["desc"]
-        )
-        lines.append(content)
-    await msg.reply(**formatting.as_list(*lines, sep="\n\n").as_kwargs())
+    lines = os.listdir(current_dir / "prompts")
+    await msg.reply("\n".join(lines))
 
 
 @cat_story_router.message(Command("get_current_prompt"), IsBotAdmin())
@@ -152,11 +131,11 @@ register_command(
     "Установить системный промпт вручную (только для владельца бота)",
 )
 register_command(
-    "/set_named_prompt {имя}",
+    "/set_file_prompt {имя файла}",
     "Установить системный промпт по имени (из файла) (только для владельца бота)",
 )
 register_command(
-    "/get_list_def_prompts", "Показать список доступных встроенных промптов"
+    "/get_list_prompts", "Показать список доступных встроенных промптов(файлов)"
 )
 register_command(
     "/get_current_prompt",
