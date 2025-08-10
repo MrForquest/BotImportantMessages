@@ -1,5 +1,6 @@
-from aiogram.types import Message
 from aiogram.filters import Filter
+from aiogram.types import Message
+
 import config
 
 

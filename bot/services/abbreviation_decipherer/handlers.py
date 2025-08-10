@@ -1,27 +1,36 @@
 import random
 import re
 
-from aiogram import Router
-from aiogram.types import Message
+from aiogram import F, Router
 from aiogram.filters import Command
+from aiogram.types import Message
+
+import config
 from abbreviation_decipherer.abbreviation_decipherer import (
+    adjf_noun_of_noun,
     get_deciphers,
     n_adjf_of_noun,
-    adjf_noun_of_noun,
 )
 from abbreviation_decipherer.filters import RandomFilter
+from utils.command_registry import register_command
+
+register_command("/abbr {слово}", "Дать расшифровку сокращённого слова")
+register_command("/blt {аббревиатура}", "Грубая расшифровка аббревиатуры с матом")
 
 abbreviation_decipherer_router = Router()
 
 
-@abbreviation_decipherer_router.message(RandomFilter(chance=0.06))
+@abbreviation_decipherer_router.message(
+    RandomFilter(chance=0.06),
+    F.chat.id.in_((config.CHAT_ID,)),
+)
 async def abbr_message_handler(msg: Message):
     """
     обрабатывает сообщение с некоторой вероятностью сообщения,
     из строки берётся одно случайное слово и ему даётся расшировка
     """
     msg_text = msg.text.lower()
-    msg_text = re.sub("[^\w]", " ", msg_text).strip()
+    msg_text = re.sub(r"[^\w]", " ", msg_text).strip()
     words = set(msg_text.split())
     if not words:
         return
@@ -62,6 +71,7 @@ async def abbr_command_handler(msg: Message):
     msg_text = re.sub("[^\w]", " ", msg_text).strip()
     words = set(msg_text.split())
     if not words:
+        await msg.reply("Я не нашёл сокращений")
         return
     variants = list()
     for w in words:
@@ -70,6 +80,7 @@ async def abbr_command_handler(msg: Message):
         if deciphers:
             variants.append((w, is_orig, corr_abbr, deciphers))
     if not variants:
+        await msg.reply("Я не нашёл сокращений")
         return
 
     random_abbr = random.choice(variants)

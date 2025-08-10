@@ -1,11 +1,10 @@
-import re
 import random
-import sqlite3
-import config
+import re
 
 import pymorphy2
 import requests
 from bs4 import BeautifulSoup
+
 from database import database
 
 ABBR_BASE_URL = "https://xn----7sbbfsshef0aedydgg4lyb.xn--p1ai"
@@ -93,10 +92,10 @@ def get_random_word_by_ps(ps, start_with=""):
 def adjf_noun_of_noun(abbr):
     try:
         noun1 = morph_analyzer.parse(
-            get_random_word_by_ps("NOUN", start_with=abbr[0]),
+            get_random_word_by_ps("NOUN", start_with=abbr[1]),
         )[0]
         adjf1 = morph_analyzer.parse(
-            get_random_word_by_ps("ADJF", start_with=abbr[1]),
+            get_random_word_by_ps("ADJF", start_with=abbr[0]),
         )[0]
         noun2 = morph_analyzer.parse(
             get_random_word_by_ps("NOUN", start_with=abbr[2]),

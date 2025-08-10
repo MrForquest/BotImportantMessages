@@ -1,19 +1,22 @@
+import os
 from pathlib import Path
 
-from dotenv import dotenv_values
+from dotenv import dotenv_values, load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent  # .parent
 
 # Load environment variables
-ENV_NAME = ".env"
-ENV_PATH = BASE_DIR / ENV_NAME
-env = dotenv_values(ENV_PATH)
+load_dotenv()
+env = dotenv_values()
 
-BOT_TOKEN = env.get("BOT_TOKEN")
-REPORT_CHANNEL_ID = env.get("REPORT_CHANNEL_ID")
-IN_TEXT = env.get("IN_TEXT").split(", ")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+REPORT_CHANNEL_ID = os.getenv("REPORT_CHANNEL_ID")
+IN_TEXT = os.getenv("IN_TEXT").split(", ")
+CHAT_ID = int(os.getenv("SHIK_ID"))
+TEST_ID = int(os.getenv("TEST_ID"))
+BOT_ADMIN_ID = int(os.getenv("BOT_ADMIN_ID"))
 
-CHATGPT_KEY = env.get("CHATGPT_KEY")
+GPT_TOKEN = os.getenv("GPT_TOKEN")
 
 DATABASE_PATH = BASE_DIR / "db" / "curse_words.db"

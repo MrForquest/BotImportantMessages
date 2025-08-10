@@ -1,5 +1,6 @@
-import config
 import sqlite3
+
+import config
 
 __factory = None
 

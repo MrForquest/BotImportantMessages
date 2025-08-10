@@ -1,8 +1,15 @@
 from aiogram import Router
-from aiogram.types import Message
 from aiogram.filters import Command
-from import_message_sorter.filters import ImportanceFilter
+from aiogram.types import Message
+
 import config
+from import_message_sorter.filters import ImportanceFilter
+from utils.command_registry import register_command
+
+register_command("/start", "Проверка, что бот стартовал")
+register_command(
+    "/test", "Тестовая команда для проверка реакцию одинаковых обработчиков"
+)
 
 important_message_sorter_router = Router()
 
@@ -38,9 +45,3 @@ async def handler_one(msg: Message):
 @important_message_sorter_router.message(Command("test"))
 async def handler_two(msg: Message):
     await msg.answer("Это обработчик 2")
-
-
-# TODO
-"""
-Так, ребят, скоро, важно, нужно, вместе, соберемся, в понедельник, на следующей неделе, поедем, пойдем, гулять, погулять
-"""
