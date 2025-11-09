@@ -13,7 +13,6 @@ import config
 from cat_story.filters import IsBotAdmin, ReplyBotFilter
 from utils.command_registry import register_command
 
-
 current_dir = pathlib.Path(__file__).resolve().parent
 cat_story_router = Router()
 gpt_client = OpenAI(
