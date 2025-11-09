@@ -16,7 +16,8 @@ IN_TEXT = os.getenv("IN_TEXT").split(", ")
 CHAT_ID = int(os.getenv("SHIK_ID"))
 TEST_ID = int(os.getenv("TEST_ID"))
 BOT_ADMIN_ID = int(os.getenv("BOT_ADMIN_ID"))
-
+MODEL_NAME = os.getenv("MODEL_NAME")
+MODEL_API_BASE_URL = os.getenv("MODEL_API_BASE_URL")
 GPT_TOKEN = os.getenv("GPT_TOKEN")
-
+MODEL_SYSTEM_ROLE_NAME = os.getenv("MODEL_SYSTEM_ROLE_NAME")
 DATABASE_PATH = BASE_DIR / "db" / "curse_words.db"

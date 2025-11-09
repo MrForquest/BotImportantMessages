@@ -13,14 +13,12 @@ import config
 from cat_story.filters import IsBotAdmin, ReplyBotFilter
 from utils.command_registry import register_command
 
-MODEL_NAME = "gemini-2.5-flash"
-GPT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
 current_dir = pathlib.Path(__file__).resolve().parent
 cat_story_router = Router()
 gpt_client = OpenAI(
     api_key=config.GPT_TOKEN,
-    base_url=GPT_BASE_URL,
+    base_url=config.MODEL_API_BASE_URL,
 )
 
 
@@ -68,10 +66,12 @@ def serialize_chat_history(messages, chat_history):
 @cat_story_router.message(ReplyBotFilter())
 async def cat_story(msg: Message, history: Dict[int, collections.deque]):
     chat_history = history[msg.chat.id]
-    messages = [{"role": "system", "content": system_prompt}]
+    messages = [{"role": config.MODEL_SYSTEM_ROLE_NAME, "content": system_prompt}]
     messages = serialize_chat_history(messages, chat_history)
     print(messages)
-    completion = gpt_client.chat.completions.create(model=MODEL_NAME, messages=messages)
+    completion = gpt_client.chat.completions.create(
+        model=config.MODEL_NAME, messages=messages
+    )
     ai_answer = completion.choices[0].message.content
     ai_data = {
         "username": "markisa_system",
@@ -81,7 +81,7 @@ async def cat_story(msg: Message, history: Dict[int, collections.deque]):
         "text": ai_answer,
     }
     chat_history.append(ai_data)
-    await msg.reply(completion.choices[0].message.content)
+    await msg.reply(str(completion.choices[0].message.content))
 
 
 @cat_story_router.message(Command("full_clean"), IsBotAdmin())
