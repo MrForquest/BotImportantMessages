@@ -101,7 +101,7 @@ async def abbr_command_handler(msg: Message):
 @abbreviation_decipherer_router.message(Command("blt"))
 async def blt_command_handler(msg: Message):
     """
-    комагда blt нужна чтобы ругаться матом
+    команда blt нужна чтобы ругаться матом
     """
     msg_text = msg.text.lower()
     abbr = msg_text.split()[1]
